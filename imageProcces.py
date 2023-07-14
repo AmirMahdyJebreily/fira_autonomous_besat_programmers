@@ -56,7 +56,7 @@ def callback(data):
 	cv2.imshow("win", final)
 	cv2.waitKey(10)
 def translate(inp_min, inp_max, out_min, out_max,inp_error):
-	return ((((inp_error - inp_min ) * (out_max)) / (inp_max - inp_min))+ out_min)
+	return ((((inp_error - inp_min ) * (out_max - out_min)) / (inp_max - inp_min))+ out_min)
 def receive():
     rospy.Subscriber("/catvehicle/camera_front/image_raw_front", Image, callback)
     rospy.spin()
