@@ -47,13 +47,16 @@ def callback(data):
 
 	blank = np.zeros_like(image)	
 
-	avglines = avg_line(blank, lines)
+	avglines , error = avg_line(blank, lines)
 	
 	final = draw_lines(image, avglines)
 
+	print(translate(-1,1, -3, 3, error))
+
 	cv2.imshow("win", final)
 	cv2.waitKey(10)
-
+def translate(inp_min, inp_max, out_min, out_max,inp_error):
+	return ((((inp_error - inp_min ) * (out_max)) / (inp_max - inp_min))+ out_min)
 def receive():
     rospy.Subscriber("/catvehicle/camera_front/image_raw_front", Image, callback)
     rospy.spin()
@@ -100,7 +103,7 @@ def avg_line(image, lines):
 	print(left_line_avg[0], right_line_avg[0])
 	print(error)
  
-	return np.array([left_line, right_line])
+	return np.array([left_line, right_line]) , error
 if __name__ == "__main__":
     rospy.init_node("receiveImage" , anonymous=True)
     try:
