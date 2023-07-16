@@ -15,6 +15,7 @@ def callback(data):
 	global velocity_publisher
 	global vel_msg
 	global nolineRec
+	global cashedError
 
 	frame = bridge.imgmsg_to_cv2(data, "bgr8")
 
@@ -37,10 +38,18 @@ def callback(data):
 
 	poly = np.array([
 		[
+			(0, frame.shape[0] - k),
+			(int(width / 2) - i, int(height / 2) + j),
+			(int(width / 2) + i , int(height / 2) + j),
+			(width, height - k)
+		]
+	])
+	aPoly = np.array([
+		[
 			(10, frame.shape[0] - k),
-			(int(frame.shape[1] / 2) - i, int(frame.shape[0] / 2) + j),
-			(int(frame.shape[1] / 2) + i , int(frame.shape[0] / 2) + j),
-			(frame.shape[1], frame.shape[0] - k)
+			(int(width / 2) - 1, int(height / 2) + j),
+			(int(width / 2) + 1 , int(height / 2) + j),
+			(width, height - k)
 		]
 	])
 
@@ -51,13 +60,13 @@ def callback(data):
 
 	mask = np.zeros_like(edge)	
 
-	mask = cv2.fillPoly(mask, pts=[poly], color=255)
+	mask = cv2.fillPoly(mask, pts=[aPoly], color=255)
 
 	maskedimg = cv2.bitwise_and(edge, mask)
 
 	graymaskedimg = cv2.bitwise_and(gray, mask)
 
-	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=10, lines=np.array([]), minLineLength=40, maxLineGap=5)
+	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=5, lines=np.array([]), minLineLength=40, maxLineGap=5)
 
 
 	final = image.copy()
@@ -75,23 +84,28 @@ def callback(data):
 		avglines, error = avg_line(blank, lines)
 
 		if abs(error) > 1:
-			print("speed reduced")
+			print("non optimized error =",error)
+			error = translate(-5,5,-1,1,float(error))
+			print("speed reduced","optimized error = ",error)
 			speed = 1
 		
+		if abs(error) > 0.6:
+			speed = 3
+
 		final = draw_lines(final, avglines,color)
 
 		rawLines = draw_lines(rawLines, lines , (255,0,0))
 
-		error = error 	
+		cashedError = error
+
 	else:
+		error = cashedError
 		speed = speed / 10
 		final = draw_texts(final,"no line detected")
+		print("cashed error = ",error)
 
 	steering = translate(-1.0,1.0,-3.0,3.0,float(error))
 
-	steering * 0.2
-
-	print(error, steering)
 
 	vel_msg.linear.x = speed 
 
@@ -101,14 +115,14 @@ def callback(data):
 
 	# # print(error, steering)
 
-	
-	cv2.imshow("MASK",mask)
 	cv2.imshow("IMAGE LINES", rawLines)
 	cv2.imshow("GRAY MASKED IMAGE", graymaskedimg)
 	cv2.imshow("FINAL", final)
 	cv2.waitKey(10)
 
 def receive():
+	global cashedError
+	cashedError = 0
 	global nolineRec
 	nolineRec = 0
 	rospy.Subscriber("/catvehicle/camera_front/image_raw_front", Image, callback)
@@ -127,7 +141,7 @@ def receive():
 	rospy.spin()
 	
 def translate(inp_min, inp_max, out_min, out_max,inp_error):
-	return float(inp_error - inp_min) * float(out_max-out_min) / float(inp_max - inp_min) + float(out_min)
+	return (float(inp_error - inp_min) * float(out_max-out_min) / float(inp_max - inp_min) + float(out_min))
 
 def draw_lines(image, lines, color):
 	#line_image = image.copy()
@@ -167,6 +181,7 @@ def avg_line(image, lines):
 		intercept = parameters[1]
 		if(slope <= 0):
 			if(slope != 0):
+				left_lines.append((slope, intercept))
 				left_lines.append((slope, intercept))
 		else:
 			right_lines.append((slope, intercept))
