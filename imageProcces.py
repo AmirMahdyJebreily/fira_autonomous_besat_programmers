@@ -95,6 +95,8 @@ def callback(data):
 
 		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
 
+		cashedError = error * 0.5
+
 	else:
 		error = cashedError
 		speed = speed / 10
