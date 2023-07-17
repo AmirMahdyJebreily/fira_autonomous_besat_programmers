@@ -96,7 +96,7 @@ def callback(data):
 		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
 
 	else:
-		error = 0
+		error = cashedError
 		speed = speed / 10
 		final = draw_texts(final,"no line detected")
 
@@ -177,6 +177,7 @@ def avg_line(image, lines):
 		intercept = parameters[1]
 		if(slope <= 0):
 			if(slope != 0):
+				left_lines.append((slope, intercept))
 				left_lines.append((slope, intercept))
 				left_lines.append((slope, intercept))
 		else:
