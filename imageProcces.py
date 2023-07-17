@@ -30,7 +30,7 @@ def callback(data):
 
 	height, width = edge.shape	
 
-	i = 80
+	i = 1
 
 	j = 60
 
@@ -38,20 +38,21 @@ def callback(data):
 
 	poly = np.array([
 		[
-			(0, frame.shape[0] - k),
+			(0, width - k),
 			(int(width / 2) - i, int(height / 2) + j),
 			(int(width / 2) + i , int(height / 2) + j),
 			(width, height - k)
 		]
 	])
-	aPoly = np.array([
-		[
-			(10, frame.shape[0] - k),
-			(int(width / 2) - 1, int(height / 2) + j),
-			(int(width / 2) + 1 , int(height / 2) + j),
-			(width, height - k)
-		]
-	])
+
+	# aPoly = np.array([
+	# 	[
+	# 		(10, frame.shape[0] - k),
+	# 		(int(width / 2) - 1, int(height / 2) + j),
+	# 		(int(width / 2) + 1 , int(height / 2) + j),
+	# 		(width, height - k)
+	# 	]
+	# ])
 
 
 	blank = np.zeros_like(image)		
@@ -60,22 +61,20 @@ def callback(data):
 
 	mask = np.zeros_like(edge)	
 
-	mask = cv2.fillPoly(mask, pts=[aPoly], color=255)
+	mask = cv2.fillPoly(mask, pts=[poly], color=255)
 
 	maskedimg = cv2.bitwise_and(edge, mask)
 
 	graymaskedimg = cv2.bitwise_and(gray, mask)
 
-	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=5, lines=np.array([]), minLineLength=40, maxLineGap=5)
+	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=40, maxLineGap=5)
 
 
 	final = image.copy()
 	
-	rawLines = image.copy()
+	rawLinesImage = image.copy()
 
 	color = (0,255,0)
-
-	error = 0
 
 	if lines is not None:
 		if (len(lines) == 1):
@@ -83,28 +82,25 @@ def callback(data):
 
 		avglines, error = avg_line(blank, lines)
 
-		if abs(error) > 1:
+		if abs(error) > 1.5 :
 			print("non optimized error =",error)
-			error = translate(-5,5,-1,1,float(error))
+			error = translate(-3.0,3.0,-1.5,1.5,float(error))
 			print("speed reduced","optimized error = ",error)
 			speed = 1
-		
+
 		if abs(error) > 0.6:
 			speed = 3
 
 		final = draw_lines(final, avglines,color)
 
-		rawLines = draw_lines(rawLines, lines , (255,0,0))
-
-		cashedError = error
+		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
 
 	else:
-		error = cashedError
+		error = 0
 		speed = speed / 10
 		final = draw_texts(final,"no line detected")
-		print("cashed error = ",error)
 
-	steering = translate(-1.0,1.0,-3.0,3.0,float(error))
+	steering = translate(-1.5,1.5,-3.0,3.0,float(error))
 
 
 	vel_msg.linear.x = speed 
@@ -115,7 +111,7 @@ def callback(data):
 
 	# # print(error, steering)
 
-	cv2.imshow("IMAGE LINES", rawLines)
+	cv2.imshow("IMAGE LINES", rawLinesImage)
 	cv2.imshow("GRAY MASKED IMAGE", graymaskedimg)
 	cv2.imshow("FINAL", final)
 	cv2.waitKey(10)
