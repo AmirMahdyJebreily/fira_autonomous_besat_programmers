@@ -45,6 +45,13 @@ def callback(data):
 		]
 	])
 
+	hoodPoly = np.array([[
+		(360,width),
+		(360,670),
+		(440,670),
+		(440,width)
+	]])
+
 	# aPoly = np.array([
 	# 	[
 	# 		(10, frame.shape[0] - k),
