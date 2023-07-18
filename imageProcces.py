@@ -32,9 +32,9 @@ def callback(data):
 
 	i = 1
 
-	j = 60
+	j = 120
 
-	k = 100
+	k = 60
 
 	poly = np.array([
 		[
