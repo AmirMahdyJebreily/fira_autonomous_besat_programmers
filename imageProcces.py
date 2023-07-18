@@ -107,11 +107,8 @@ def callback(data):
 		final = draw_lines(final, avglines,color)
 
 		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
-
-		cashedError = error * 0.5
-
 	else:
-		error = cashedError
+		error = 0
 		speed = speed / 10
 		final = draw_texts(final,"no line detected")
 
