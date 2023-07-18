@@ -45,6 +45,15 @@ def callback(data):
 		]
 	])
 
+	upPoly = np.array([
+		[
+			(10, height - 200),
+			(int(width / 2) - 1, int(height / 2) + 20),
+			(int(width / 2) + 1 , int(height / 2) + 20),
+			(width, height  - 200)
+		]
+	])
+
 	hoodPoly = np.array([[
 		(360,width),
 		(360,670),
