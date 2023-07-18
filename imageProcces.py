@@ -23,25 +23,25 @@ def callback(data):
 
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-	blur = cv2.GaussianBlur(gray, (5,13), 0)
+	blur = cv2.GaussianBlur(gray, (3,13), 0)
 
 	edge = cv2.Canny(blur, 50, 55)
 	
 
 	height, width = edge.shape	
 
-	i = 1
+	i = 30
 
 	j = 120
 
-	k = 60
+	k = 0
 
 	poly = np.array([
 		[
-			(0, width - k),
+			(0, height - k),
 			(int(width / 2) - i, int(height / 2) + j),
 			(int(width / 2) + i , int(height / 2) + j),
-			(width, height - k)
+			(width, height -k)
 		]
 	])
 
@@ -52,16 +52,6 @@ def callback(data):
 		(440,width)
 	]])
 
-	# aPoly = np.array([
-	# 	[
-	# 		(10, frame.shape[0] - k),
-	# 		(int(width / 2) - 1, int(height / 2) + j),
-	# 		(int(width / 2) + 1 , int(height / 2) + j),
-	# 		(width, height - k)
-	# 	]
-	# ])
-
-
 	blank = np.zeros_like(image)		
 
 	# mask = cv2.fillPoly(np.zeros_like(image), pts=[poly], color=255)
@@ -70,11 +60,13 @@ def callback(data):
 
 	mask = cv2.fillPoly(mask, pts=[poly], color=255)
 
-	capMask = blank.copy()
+	hoodMask = blank.copy()
 
-	capMask = cv2.fillPoly(capMask, pts=[hoodPoly],color=255)
+	hoodMask = cv2.fillPoly(hoodMask, pts=[hoodPoly],color=255)
 
-	capMask = cv2.bitwise_and(capMask,mask)
+	hoodMask = cv2.bitwise_and(hoodMask,mask)
+
+	mask = cv2.bitwise_xor(mask, hoodMask)
 
 	maskedimg = cv2.bitwise_and(edge, mask)
 
