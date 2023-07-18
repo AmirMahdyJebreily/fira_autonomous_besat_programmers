@@ -81,6 +81,14 @@ def callback(data):
 
 	graymaskedimg = cv2.bitwise_and(gray, mask)
 
+	upMask = blank.copy()
+
+	upMask = cv2.fillPoly(upMask, pts=[upPoly],color=255)
+	
+	upperMaskImg = cv2.bitwise_and(edge, upMask)
+
+	upperLines =cv2.HoughLinesP(upperMaskImg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=15, maxLineGap=5)
+
 	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=10, lines=np.array([]), minLineLength=40, maxLineGap=5)
 
 
