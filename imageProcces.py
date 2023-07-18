@@ -74,6 +74,8 @@ def callback(data):
 
 	capMask = cv2.fillPoly(capMask, pts=[hoodPoly],color=255)
 
+	capMask = cv2.bitwise_and(capMask,mask)
+
 	maskedimg = cv2.bitwise_and(edge, mask)
 
 	graymaskedimg = cv2.bitwise_and(gray, mask)
