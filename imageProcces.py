@@ -10,7 +10,7 @@ bridge = CvBridge()
 
 def callback(data):
 
-	speed = 3
+	speed = 7
 
 	global velocity_publisher
 	global vel_msg
@@ -99,18 +99,22 @@ def callback(data):
 	color = (0,255,0)
 
 	if lines is not None:
+		speed = 3
+
 		if (len(lines) == 1):
 			lines = [lines]
 
 		avglines, error = avg_line(blank, lines)
+
+		if abs(error) > 1 :
+			speed = 2
 
 		final = draw_lines(final, avglines,color)
 
 		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
 	else:
 		error = 0
-		speed = speed / 10
-		final = draw_texts(final,"no line detected")
+		speed = 5
 
 	steering = translate(-1.5,1.5,-3.0,3.0,float(error))
 
