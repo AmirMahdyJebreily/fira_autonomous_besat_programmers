@@ -113,8 +113,14 @@ def callback(data):
 
 		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
 	else:
+		
+		if upperLines is not None:
+			avgULines , Uerror = avg_line(blank,upperLines)
+			if abs(Uerror) > 0.5:
+				speed = 5
+				print("!------- speed reduced ; uplines_error == ",Uerror,"-------!")
+
 		error = 0
-		speed = 5
 
 	steering = translate(-1.5,1.5,-3.0,3.0,float(error))
 
@@ -128,7 +134,6 @@ def callback(data):
 	# # print(error, steering)
 
 	cv2.imshow("IMAGE LINES", rawLinesImage)
-	cv2.imshow("GRAY MASKED IMAGE", graymaskedimg)
 	cv2.imshow("FINAL", final)
 	cv2.waitKey(10)
 
