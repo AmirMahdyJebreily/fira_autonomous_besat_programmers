@@ -95,15 +95,6 @@ def callback(data):
 
 		avglines, error = avg_line(blank, lines)
 
-		if abs(error) > 1.5 :
-			print("non optimized error =",error)
-			error = translate(-3.0,3.0,-1.5,1.5,float(error))
-			print("speed reduced","optimized error = ",error)
-			speed = 1
-
-		if abs(error) > 0.6:
-			speed = 3
-
 		final = draw_lines(final, avglines,color)
 
 		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
