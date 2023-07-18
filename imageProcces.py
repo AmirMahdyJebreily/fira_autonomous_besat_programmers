@@ -10,7 +10,7 @@ bridge = CvBridge()
 
 def callback(data):
 
-	speed = 4
+	speed = 3
 
 	global velocity_publisher
 	global vel_msg
