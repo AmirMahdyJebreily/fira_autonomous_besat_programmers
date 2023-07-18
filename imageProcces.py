@@ -10,132 +10,127 @@ bridge = CvBridge()
 
 def callback(data):
 
-	speed = 7
+    speed = 7
 
-	global velocity_publisher
-	global vel_msg
-	global nolineRec
-	global cashedError
+    global velocity_publisher
+    global vel_msg
+    global nolineRec
+    global cashedError
 
-	frame = bridge.imgmsg_to_cv2(data, "bgr8")
+    frame = bridge.imgmsg_to_cv2(data, "bgr8")
 
-	image = frame	
+    image = frame	
 
-	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-	blur = cv2.GaussianBlur(gray, (3,13), 0)
+    blur = cv2.GaussianBlur(gray, (3,13), 0)
 
-	edge = cv2.Canny(blur, 50, 55)
-	
-
-	height, width = edge.shape	
-
-	i = 30
-
-	j = 120
-
-	k = 0
-
-	poly = np.array([
-		[
-			(0, height - k),
-			(int(width / 2) - i, int(height / 2) + j),
-			(int(width / 2) + i , int(height / 2) + j),
-			(width, height -k)
-		]
-	])
-
-	upPoly = np.array([
-		[
-			(10, height - 200),
-			(int(width / 2) - 1, int(height / 2) + 20),
-			(int(width / 2) + 1 , int(height / 2) + 20),
-			(width, height  - 200)
-		]
-	])
-
-	hoodPoly = np.array([[
-		(360,width),
-		(360,670),
-		(440,670),
-		(440,width)
-	]])
-
-	blank = np.zeros_like(image)		
-
-	# mask = cv2.fillPoly(np.zeros_like(image), pts=[poly], color=255)
-
-	mask = np.zeros_like(edge)	
-
-	mask = cv2.fillPoly(mask, pts=[poly], color=255)
-
-	hoodMask = blank.copy()
-
-	hoodMask = cv2.fillPoly(hoodMask, pts=[hoodPoly],color=255)
-
-	hoodMask = cv2.bitwise_and(hoodMask,mask)
-
-	mask = cv2.bitwise_xor(mask, hoodMask)
-
-	maskedimg = cv2.bitwise_and(edge, mask)
-
-	graymaskedimg = cv2.bitwise_and(gray, mask)
-
-	upMask = blank.copy()
-
-	upMask = cv2.fillPoly(upMask, pts=[upPoly],color=255)
-	
-	upperMaskImg = cv2.bitwise_and(edge, upMask)
-
-	upperLines =cv2.HoughLinesP(upperMaskImg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=15, maxLineGap=5)
-
-	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=10, lines=np.array([]), minLineLength=40, maxLineGap=5)
+    edge = cv2.Canny(blur, 50, 55)
 
 
-	final = image.copy()
-	
-	rawLinesImage = image.copy()
+    height, width = edge.shape	
 
-	color = (0,255,0)
+    i = 30
 
-	if lines is not None:
-		speed = 3
+    j = 120
 
-		if (len(lines) == 1):
-			lines = [lines]
+    k = 0
 
-		avglines, error = avg_line(blank, lines)
+    poly = np.array([
+        [
+            (0, height - k),
+            (int(width / 2) - i, int(height / 2) + j),
+            (int(width / 2) + i , int(height / 2) + j),
+            (width, height -k)
+        ]
+    ])
 
-		if abs(error) > 1 :
-			speed = 2
+    upPoly = np.array([
+        [
+            (10, height - 200),
+            (int(width / 2) - 1, int(height / 2) + 20),
+            (int(width / 2) + 1 , int(height / 2) + 20),
+            (width, height  - 200)
+        ]
+    ])
 
-		final = draw_lines(final, avglines,color)
+    hoodPoly = np.array([[
+        (360,width),
+        (360,670),
+        (440,670),
+        (440,width)
+    ]])
 
-		rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
-	else:
-		
-		if upperLines is not None:
-			avgULines , Uerror = avg_line(blank,upperLines)
-			if abs(Uerror) > 0.5:
-				speed = 5
-				print("!------- speed reduced ; uplines_error == ",Uerror,"-------!")
+    blank = np.zeros_like(edge)		
 
-		error = 0
+    mask = blank.copy()
 
-	steering = translate(-1.5,1.5,-3.0,3.0,float(error))
+    mask = cv2.fillPoly(mask, pts=[poly], color=255)
+
+    hoodMask = blank.copy()
+
+    hoodMask = cv2.fillPoly(hoodMask, pts=[hoodPoly],color=255)
+
+    hoodMask = cv2.bitwise_and(hoodMask,mask)
+
+    mask = cv2.bitwise_xor(mask, hoodMask)
+
+    maskedImg = cv2.bitwise_and(edge, mask)
+
+    upMask = blank.copy()
+
+    upMask = cv2.fillPoly(upMask, pts=[upPoly],color=255)
+
+    upperMaskImg = cv2.bitwise_and(edge, upMask)
+
+    upperLines =cv2.HoughLinesP(upperMaskImg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=15, maxLineGap=5)
+
+    lines = cv2.HoughLinesP(maskedImg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=30, maxLineGap=5)
+
+    final = image.copy()
+
+    rawLinesImage = image.copy()
+
+    color = (0,255,0)
+
+    if lines is not None:
+        speed = 3
+
+        if (len(lines) == 1):
+            lines = [lines]
+
+        avglines, error = avg_line(blank, lines)
+
+        if abs(error) > 1 :
+            speed = 2
+
+        final = draw_lines(final, avglines,color)
+
+        rawLinesImage = draw_lines(rawLinesImage, lines , (255,0,0))
+    else:
+        
+        if upperLines is not None:
+            avgULines , Uerror = avg_line(blank,upperLines)
+            if abs(Uerror) > 0.5:
+                speed = 5
+                print("!------- speed reduced ; uplines_error == ",Uerror,"-------!")
+
+        error = 0
+
+    steering = translate(-1.5,1.5,-3.0,3.0,float(error))
 
 
-	vel_msg.linear.x = speed 
+    vel_msg.linear.x = speed 
 
-	vel_msg.angular.z = steering
+    vel_msg.angular.z = steering
 
-	velocity_publisher.publish(vel_msg)
+    velocity_publisher.publish(vel_msg)
 
-	# # print(error, steering)
+    # # print(error, steering)
 
-	cv2.imshow("IMAGE LINES", rawLinesImage)
-	cv2.imshow("FINAL", final)
-	cv2.waitKey(10)
+    cv2.imshow("IMAGE LINES", rawLinesImage)
+    cv2.imshow("FINAL", final)
+    cv2.waitKey(10)
 
 def receive():
 	global cashedError
