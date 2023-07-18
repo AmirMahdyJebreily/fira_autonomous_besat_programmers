@@ -23,9 +23,9 @@ def callback(data):
 
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-	blur = cv2.GaussianBlur(gray, (3,3), 0)
+	blur = cv2.GaussianBlur(gray, (5,13), 0)
 
-	edge = cv2.Canny(blur, 50, 100)
+	edge = cv2.Canny(blur, 50, 55)
 	
 
 	height, width = edge.shape	
@@ -67,7 +67,7 @@ def callback(data):
 
 	graymaskedimg = cv2.bitwise_and(gray, mask)
 
-	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=40, maxLineGap=5)
+	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=10, lines=np.array([]), minLineLength=40, maxLineGap=5)
 
 
 	final = image.copy()
