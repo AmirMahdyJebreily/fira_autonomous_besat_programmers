@@ -22,7 +22,7 @@ def callback(data):
 
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-	blur = cv2.GaussianBlur(gray, (5,15), 0)
+	blur = cv2.GaussianBlur(gray, (3,15), 0)
 
 	edge = cv2.Canny(blur, 45, 55)
 
@@ -31,14 +31,14 @@ def callback(data):
 
 	i = 30
 
-	j = 120
+	j = 160
 
 	k = 0
 
 	poly = np.array([
 		[
 			(0, height - k),
-			(int(width / 2) - i, int(height / 2) + j),
+			(int(width / 2) - i - 60, int(height / 2) + j),
 			(int(width / 2) + i , int(height / 2) + j),
 			(width, height -k)
 		]
@@ -54,10 +54,10 @@ def callback(data):
 	])
 
 	hoodPoly = np.array([[
-		(360,width),
+		(360,height - 50),
 		(360,670),
 		(440,670),
-		(440,width)
+		(440,height - 50)
 	]])
 
 	blank = np.zeros_like(edge)		
@@ -83,8 +83,8 @@ def callback(data):
 	upperMaskImg = cv2.bitwise_and(edge, upMask)
 
 	upperLines =cv2.HoughLinesP(upperMaskImg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=15, maxLineGap=5)
-
-	lines = cv2.HoughLinesP(maskedImg, rho=2, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=30, maxLineGap=5)
+	
+	lines = cv2.HoughLinesP(maskedImg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=30, maxLineGap=5)
 
 	final = image.copy()
 
@@ -92,7 +92,9 @@ def callback(data):
 
 	color = (0,255,0)
 
-	speed = 9
+	speed = 7
+
+	translate_period = [-3.0,3.0]
 
 	if lines is not None:
 		speed = 3
@@ -103,6 +105,7 @@ def callback(data):
 		avglines, error = avg_line(blank, lines)
 
 		if abs(error) > 1 :
+			error = translate(-2.5,2.5,-1,1,float(error))
 			speed = 2
 
 		final = draw_lines(final, avglines,color)
@@ -112,13 +115,13 @@ def callback(data):
 		
 		if upperLines is not None:
 			avgULines , Uerror = avg_line(blank,upperLines)
-			if abs(Uerror) > 0.5:
-				speed = 5
+			if abs(Uerror) > 1:
+				speed = 6
 				print("!------- speed reduced ; uplines_error == ",Uerror,"-------!")
 
 		error = 0
 
-	steering = translate(-1.5,1.5,-3.0,3.0,float(error))
+	steering = translate(-1.5,1.5,translate_period[0],translate_period[1],float(error))
 
 
 	vel_msg.linear.x = speed 
@@ -127,8 +130,7 @@ def callback(data):
 
 	velocity_publisher.publish(vel_msg)
 
-	# # print(error, steering)
-	cv2.imshow("CANNY IMAGE", edge)
+	# cv2.imshow("CANNY IMAGE", edge)
 	cv2.imshow("IMAGE LINES", rawLinesImage)
 	cv2.imshow("FINAL", final)
 	cv2.waitKey(10)
@@ -197,6 +199,7 @@ def avg_line(image, lines):
 				left_lines.append((slope, intercept))
 				left_lines.append((slope, intercept))
 				left_lines.append((slope, intercept))
+				# left_lines.append((slope, intercept))
 		else:
 			right_lines.append((slope, intercept))
 
@@ -211,13 +214,9 @@ def avg_line(image, lines):
 
 	
 	right_line_avg_fix = right_line_avg if (isinstance(right_line_avg, np.ndarray)) else np.array([0, 0]) 	
-
-	# print(left_line_avg_fix)
-	# print(right_line_avg_fix)
 	
 	error = (left_line_avg_fix[0] + right_line_avg_fix[0]) / 2
 		
-	# print(error, out)
  
 	return np.array([left_line, right_line]), error
     
