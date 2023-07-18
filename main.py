@@ -19,13 +19,13 @@ def callback(data):
 
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-	blur = cv2.GaussianBlur(gray, (5,5), 0)
+	blur = cv2.GaussianBlur(gray, (3,3), 0)
 
-	edge = cv2.Canny(image, 50, 100)
+	edge = cv2.Canny(blur, 50, 100)
 
-	i = 1
+	i = 50
 
-	j = 20
+	j = 40
 
 	k = 100
 
@@ -47,6 +47,9 @@ def callback(data):
 
 
 	maskedimg = cv2.bitwise_and(edge, mask)
+
+	graymaskedimg = cv2.bitwise_and(gray, mask)
+
 
 	lines = cv2.HoughLinesP(maskedimg, rho=3, theta=np.pi/45, threshold=20, lines=np.array([]), minLineLength=40, maxLineGap=5)
 
@@ -72,6 +75,7 @@ def callback(data):
 	velocity_publisher.publish(vel_msg)
 
 	cv2.imshow("win", final)
+	cv2.imshow("masked", graymaskedimg)
 	cv2.waitKey(10)
 
 	
@@ -146,8 +150,8 @@ def avg_line(image, lines):
 	
 	error = (left_line_avg_fix[0] + right_line_avg_fix[0]) / 2
 	
-	out = translate(float(error), -1.0, 1.0, -3.0, 3.0)
-	
+	out = translate(float(error), -1.5, 1.5, -3.0, 3.0)
+		
 	print(error, out)
  
 	return np.array([left_line, right_line]), out
@@ -163,5 +167,3 @@ if __name__ == "__main__":
     try:
         receive()
     except rospy.ROSInterruptException: pass
-
-
