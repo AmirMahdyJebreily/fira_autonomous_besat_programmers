@@ -92,7 +92,7 @@ def callback(data):
 
 	color = (0,255,0)
 
-	speed = 9
+	speed = 7.46
 
 	if lines is not None:
 		speed = 3
